@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, flash
+from flask import Flask, render_template, request, redirect, session, flash, url_for
 from game import Game
 app = Flask(__name__)
 app.secret_key = 'banana'
@@ -15,6 +15,9 @@ def index():
 
 @app.route('/new')
 def create_game():
+    if 'logged_user' not in session or session['logged_user'] == None:
+        return redirect(url_for('login'))
+
     return render_template('newgame.html', title='New Game')
 
 @app.route('/login')
@@ -27,10 +30,10 @@ def authentication():
         if 'master' == request.form['password']:
             session['logged_user'] = request.form['login']
             flash('Welcome ' + request.form['login'])
-            return redirect('/')
+            return redirect(url_for('index'))
         else:
             flash('Try again,  ' + request.form['login'])
-            return redirect('/login')
+            return redirect(url_for('login'))
 
 
 @app.route('/create_game_post', methods=['POST',])
@@ -43,12 +46,12 @@ def create_game_post():
         game = Game(name, category, console)
         games_list.append(game)
 
-        return redirect('/')
+        return redirect(url_for('index'))
 
 @app.route('/logout')
 def logout():
     session['logged_user'] = None
     flash('Desconected')
-    return redirect('/login')
+    return redirect(url_for('login'))
 
 app.run(debug=True)
